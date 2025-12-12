@@ -2,39 +2,47 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { fetchBookById } from "../services/booksService.js";
+import { fetchBooks } from "../services/booksService.js"; // ← استيراد fetchBooks مش fetchBookById
 
-// دالة تنظيف النص العربي (تُحوّل كل أنواع الألف إلى "ا" عادي وتزيل الهمزات)
 const normalizeArabic = (str) => {
     if (!str) return "";
     return str
         .toLowerCase()
         .trim()
-        .replace(/[\u0622\u0623\u0625\u0627\u0671\u0672\u0673\u0674\u0675]/g, "ا") // كل أنواع الألف → ا
+        .replace(/[\u0622\u0623\u0625\u0627\u0671\u0672\u0673\u0674\u0675]/g, "ا")
         .replace(/ة/g, "ه")
         .replace(/ي/g, "ى")
         .replace(/[إأآ]/g, "ا")
         .replace(/ء/g, "")
-        .replace(/\s+/g, " "); // مسافات متعددة → مسافة واحدة
+        .replace(/\s+/g, " ");
 };
 
 export default function SearchBar() {
     const [keyword, setKeyword] = useState("");
     const [suggestions, setSuggestions] = useState([]);
-    const [books, setBooks] = useState([]);
+    const [books, setBooks] = useState([]); // ← مش null
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetchBookById()
-            .then((data) => setBooks(data))
-            .catch(() => toast.error("فشل تحميل الكتب للبحث"));
+        fetchBooks()
+            .then((data) => {
+                setBooks(data || []);
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error("فشل تحميل الكتب:", err);
+                toast.error("فشل تحميل الكتب للبحث");
+                setBooks([]);
+                setLoading(false);
+            });
     }, []);
 
     const handleChange = (e) => {
         const value = e.target.value;
         setKeyword(value);
 
-        if (!value.trim()) {
+        if (!value.trim() || loading) {
             setSuggestions([]);
             return;
         }
@@ -43,6 +51,7 @@ export default function SearchBar() {
 
         const filtered = books
             .filter((book) => {
+                if (!book.id) return false; // حماية إضافية
                 const title = normalizeArabic(book.title || "");
                 const author = normalizeArabic(book.author || "");
                 return title.includes(normalizedInput) || author.includes(normalizedInput);
@@ -62,9 +71,10 @@ export default function SearchBar() {
 
         const normalized = normalizeArabic(trimmed);
         const results = books.filter((book) => {
-            const t = normalizeArabic(book.title || "");
-            const a = normalizeArabic(book.author || "");
-            return t.includes(normalized) || a.includes(normalized);
+            if (!book.id) return false;
+            const title = normalizeArabic(book.title || "");
+            const author = normalizeArabic(book.author || "");
+            return title.includes(normalized) || author.includes(normalized);
         });
 
         navigate("/search", { state: { results, keyword: trimmed } });

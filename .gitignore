@@ -1,0 +1,59 @@
+﻿# ================================
+# مكتبة الحرافيش - .gitignore
+# ================================
+
+# Node.js / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# البناء والتوزيع
+build/
+dist/
+.out/
+.next/
+
+# Firebase
+.firebase/
+.firebaserc
+firebase.json
+firestore.indexes.json
+firestore.rules
+
+# البيئات
+.env
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# نظام التشغيل
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# السجلات
+*.log
+logs/
+
+# الاختبار
+coverage/
+.nyc_output/
+
+# ملفات مؤقتة
+*.tmp
+*.temp
+
+# Cache
+.cache/
+.next/
+
+# Husky
+.husky/_/
